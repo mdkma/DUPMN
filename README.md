@@ -1,18 +1,13 @@
-# mn
+# Dual Memory Network Model for Sentiment Analysis of Review Text
+
+## Get Started
+
+Download datasets `yelp13`, `yelp14` and `IMDB`. [[Download]](http://www.thunlp.org/~chm/data/data.zip).
+
+Run Neural Sentiment Classificatin Model to obtain document embedding vectors for each review documents. [[Code]](https://github.com/thunlp/NSC)
+
+Run the program
 
 ```
-python2 train.py --data_name yelp13 --classes 5
-```
-
-```
-tensorboard --logdir='tensorboard'
-```
-
-train document embedding from nothing
-```
-python2 train.py --init_doc_emb True
-```
-
-```
-scp Model.py yunfeilong@158.132.11.253:~/mn
+python train.py --data_name $DATASET_NAME$ --classes $NUM_OF_CLASSES$
 ```

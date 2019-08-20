@@ -111,28 +111,16 @@ class Model(object):
         self.temp1 = tf.cast(tf.argmax(self.prediction,1), tf.float32)
         self.temp2 = tf.cast(tf.argmax(self.labels,1), tf.float32)
         self.mse = tf.losses.mean_squared_error(self.temp2, self.temp1)
-        # self.mae, _ = tf.metrics.mean_absolute_error(self.temp2, self.temp1)
         self.accuracy = tf.reduce_mean(tf.cast(self.correctPred, tf.float32))
 
         self.loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=self.prediction_0, labels=self.labels))
         self.optim = tf.train.AdamOptimizer(self.current_lr).minimize(self.loss)
-        # self.opt = tf.train.GradientDescentOptimizer(self.current_lr)
-        # self.optim = tf.train.GradientDescentOptimizer(self.current_lr).minimize(self.loss)
-
-        # grads_and_vars = self.opt.compute_gradients(self.loss, self.params)
-        # clipped_grads_and_vars = [(tf.clip_by_norm(gv[0], 50), gv[1]) \
-        #                            for gv in grads_and_vars]
-
-        # inc = self.global_step.assign_add(1)
-        # with tf.control_dependencies([inc]):
-        # self.optim = self.opt.apply_gradients(clipped_grads_and_vars)
 
         self.sess.run(tf.global_variables_initializer())
         self.saver = tf.train.Saver()
 
     def train(self, inputs):
         # run through all batches
-        #print("A")
         if self.debug:
             train_size = 100
         else:
@@ -143,7 +131,6 @@ class Model(object):
         accuracy_total = 0
         total_weight_prd = 0
         total_weight_usr = 0
-        #print("B")
 
         if self.show:
             from utils import ProgressBar
@@ -151,9 +138,7 @@ class Model(object):
 
         for i in batchList:
             # Load next batch into Dataset class instance: inputs
-            # inputs.gene_batch(i)
             indx = i
-            #print(i)
 
             nextBatchData = np.array(inputs.docs[indx]).astype(np.int32).transpose()
             # Make the labels one-hot
@@ -191,7 +176,6 @@ class Model(object):
             total_weight_usr += _weight_usr
             if self.doc_emb_method != 'preload_no_update':#update document representation
                 self.doc_emb[i*self.batch_size:(i+1)*self.batch_size,:] = _doc_representation
-            # print '- count: ', n, '\t - batch number: ', i, '\t - loss: ', _loss
 
             n += 1
             if self.show: bar.next()
@@ -246,16 +230,7 @@ class Model(object):
                 self.doc_emb_test[i*self.batch_size:(i+1)*self.batch_size,:] = _doc_representation
             # save final prediction result here to self.pred_test from self.temp1
             self.pred_test[i*self.batch_size:(i+1)*self.batch_size] = _pred1
-            # print labels_temp
-            # print _prediction
-            # print _label1
-            # print _pred1
-            # print 'MSE:', _mse
             mae = np.sum(np.absolute(_pred1.astype("float") - _label1.astype("float")))/self.batch_size
-            # print mae
-            # print _correctPred
-            # print '- count: ', n, '\t - batch number: ', i, '\t - loss: ', _loss
-            # print 'accuracy: ', _accuracy
             cost += _loss
             accuracy_total += _accuracy
             mse_total += _mse
@@ -313,12 +288,6 @@ class Model(object):
                         self.save_doc_emb(self.doc_emb)
                         self.save_doc_emb_test(self.doc_emb_test)
                     self.save_pred_test(self.pred_test)
-
-                # Learning rate annealing
-                # if len(self.log_loss) > 1 and self.log_loss[idx][1] > self.log_loss[idx-1][1] * 0.9999:
-                #     self.current_lr = self.current_lr / 1.5
-                #     self.lr.assign(self.current_lr).eval()
-                # if self.current_lr < 1e-5: break
         else:
             # TESTING
             self.load() # restore trained model
@@ -327,7 +296,6 @@ class Model(object):
             test_loss = np.sum(self.test(test_data))
 
             state = {
-                # 'valid_perplexity': math.exp(valid_loss),
                 'test_perplexity': math.exp(test_loss)
             }
             pp.pprint(state)
@@ -343,21 +311,18 @@ class Model(object):
     def save_doc_emb(self, doc_emb):
         # TODO: change cPickle
         f = open('%s/%s/emb_doc_train.save' % (self.data_dir, self.data_name), 'wb')
-        # cPickle.dump(doc_emb, f, protocol=cPickle.HIGHEST_PROTOCOL)
         pickle.dump(doc_emb, f)
         f.close()
         print('--> saved doc embedding: train_data')
 
     def save_doc_emb_test(self, doc_emb):
         f = open('%s/%s/emb_doc_test.save' % (self.data_dir, self.data_name), 'wb')
-        # cPickle.dump(doc_emb, f, protocol=cPickle.HIGHEST_PROTOCOL)
         pickle.dump(doc_emb, f)
         f.close()
         print('--> saved doc embedding: test_data')
 
     def save_pred_test(self, result):
         f = open('%s/%s/pred_test_mn.save' % (self.data_dir, self.data_name), 'wb')
-        # cPickle.dump(result, f, protocol=cPickle.HIGHEST_PROTOCOL)
         pickle.dump(result, f)
         f.close()
         print('--> saved final prediction: test_data')
